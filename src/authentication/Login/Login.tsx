@@ -3,7 +3,7 @@ import storage from "../../app/localStorage";
 import Logo from '../../public/am-logo.jpg';
 import React from "react";
 import ClipLoader from "react-spinners/ClipLoader";
-
+import LoginRequest from "./LoginRequest";
 const Login = () => {
 const userInformation = localStorage.getItem("authenticated")
 if(userInformation == "true"){
@@ -15,42 +15,14 @@ const { username, userPassword} = FormData;
 const [Loading,isLoading] = useState(false)
 
 const onChange = (e: { target: { name: any; value: any; };
-    })=>{SetFormData({...FormData, [e.target.name]:e.target.value})}  
-
+})=>{SetFormData({...FormData, [e.target.name]:e.target.value})} 
 //Handle Authentication
-const submitLoginForm= async (e: { preventDefault: () => void; })=>{ 
-if(username.trim().length!==0 && userPassword.trim().length!==0){
-    e.preventDefault();
-    setErrorMessage('');
-    isLoading(true);
-await fetch("openmrs/ws/rest/v1/session",{
-    headers:{
-        'Authorization': 'Basic '+btoa(username+":"+userPassword), 
-        },
-    method:"GET",
-    redirect: 'follow'
-})
-.then((Response=>Promise.all(([Response.headers, Response.json()]))))
-.then(([headers,response])=>{console.log(response)
-
-if(response.authenticated==true){
-    storage.saveInfo(response)
-    localStorage.setItem('authenticated', response.authenticated)
-    localStorage.setItem("Banner","true")
-    window.location.href = "/"
+const submitLoginForm=  async ()=>{
+isLoading(true) 
+const errorMessage = await LoginRequest(username, userPassword);
+    if (errorMessage) {
+        setErrorMessage(errorMessage)
     }
-if(response.authenticated==false){
-    setErrorMessage("Invalid Username or Password!")
-    }
-}
-).catch(e=>{
-    setErrorMessage("Network error!")
-    console.log(e)
-})
-}
-else{
-    setErrorMessage("Fill in the form!")
-}
 isLoading(false)
 }
 //Handle Error Messages
